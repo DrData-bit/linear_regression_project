@@ -1,0 +1,8 @@
+term,estimate,std_error,statistic,p_value,lower_ci,upper_ci
+intercept,82.426,1.262,65.326,0,79.952,84.899
+age,0.41,0.01,41.447,0,0.391,0.429
+bmi,0.722,0.029,24.542,0,0.665,0.78
+cholesterol_total,0.01,0.004,2.526,0.012,0.002,0.018
+stress_score,0.115,0.008,14.821,0,0.1,0.131
+daily_steps,-0,0,-0.115,0.908,-0,0
+exercise_minutes_per_week,-0.017,0.002,-7.536,0,-0.021,-0.012

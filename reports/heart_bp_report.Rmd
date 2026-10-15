@@ -1,0 +1,169 @@
+---
+title: "Predictors of Resting Systolic Blood Pressure"
+author: "Your name"
+date: "`r format(Sys.Date(), '%d %B %Y')`"
+output:
+  html_document:
+    toc: true          # table of contents
+    toc_depth: 2
+    number_sections: true
+  word_document:
+    toc: true
+---
+
+```{r setup, include=FALSE}
+# --- Setup chunk ------------------------------------------------
+# include = FALSE runs this code but hides it (and its output) in the report
+
+# echo = FALSE hides the code in every chunk by default, so readers see
+# results, not code; change to TRUE if you want the code to show
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE,
+                      fig.width = 7, fig.height = 5)
+
+# Load packages
+library(tidyverse)    # dplyr, ggplot2, readr
+library(moderndive)   # get_regression_table(), get_regression_summaries(), get_correlation()
+library(knitr)        # kable() turns a table into a neat report table
+library(here)         # here() builds file paths from the project folder
+
+# This file lives in reports/, but our data and outputs are one folder up.
+# here() finds the project folder (the one holding the .Rproj file), so
+# the same paths work whichever folder the .Rmd is in.
+# Load the cleaned data and the saved final model from our scripts
+heart       <- readRDS(here("data", "clean", "heart_clean.rds"))
+model_final <- readRDS(here("outputs", "models", "final.rds"))
+```
+
+# Summary
+
+<!-- WRITE LAST. 3-4 sentences: the question, the data, the main finding,
+     and one caveat. -->
+
+# Data and methods
+
+<!-- WRITE: What the dataset is and where it came from.
+     Why resting_bp_systolic is the outcome, and why has_heart_disease was not used.
+     Which predictors you started with, and why hdl, ldl, triglycerides
+     and patient_id were left out. -->
+
+```{r data-size}
+# nrow() and ncol() count rows and columns; the report text can show them
+# inline with `r nrow(heart)` style code, e.g.:
+# The dataset has `r nrow(heart)` patients and `r ncol(heart)` variables.
+dim(heart)
+```
+
+# Data quality
+
+<!-- WRITE: Missing values, type conversions, logic checks, and what you found.
+     Say what you found even when it was "nothing wrong". -->
+
+```{r missing}
+# colSums(is.na()) counts missing cells per column; sum() totals them
+sum(colSums(is.na(heart)))
+```
+
+# Exploratory analysis
+
+<!-- WRITE: The distribution of the outcome (mean, median, SD, Q-Q plot) and
+     of the predictors. The size of each category group. -->
+
+```{r outcome-summary}
+# summarise() collapses the data to one row of statistics for the outcome
+heart |>
+  summarise(n      = n(),
+            mean   = mean(resting_bp_systolic),
+            median = median(resting_bp_systolic),
+            sd     = sd(resting_bp_systolic),
+            min    = min(resting_bp_systolic),
+            max    = max(resting_bp_systolic)) |>
+  kable(digits = 1, caption = "Resting systolic BP (mmHg)")
+```
+
+```{r outcome-plots}
+# include_graphics() inserts a plot saved earlier by ggsave()
+include_graphics(here("outputs", "plots", "outcome_histogram.png"))
+include_graphics(here("outputs", "plots", "outcome_qq.png"))
+```
+
+<!-- WRITE: One sentence under each plot saying what the reader should notice. -->
+
+```{r categories}
+# count() tallies each category; mutate() adds the percentage
+heart |>
+  count(smoker_status) |>
+  mutate(percent = round(100 * n / sum(n), 1)) |>
+  kable(caption = "Smoking status")
+```
+
+# Correlations
+
+<!-- WRITE: Rank the predictors by strength of correlation with the outcome.
+     One sentence on overlap between predictors (highest was steps and exercise). -->
+
+```{r correlations}
+# Read the table saved by Script 04
+read_csv(here("outputs", "tables", "correlations_with_outcome.csv")) |>
+  select(variable, correlation) |>
+  kable(caption = "Correlation of each predictor with systolic BP")
+```
+
+# Models
+
+## Simple regression (age only)
+
+<!-- WRITE: The age slope in everyday words, with its 95% CI, and R-squared. -->
+
+```{r simple-model}
+# Refit the simple model; get_regression_table() gives estimates and 95% CIs
+model_age <- lm(resting_bp_systolic ~ age, data = heart)
+
+get_regression_table(model_age, digits = 3) |>
+  kable(caption = "Simple regression: systolic BP and age")
+```
+
+## Multiple regression and variable selection
+
+<!-- WRITE: Which variables you added, which you dropped and WHY
+     (confidence intervals including 0, the anova() p-value, overlap
+     between steps and exercise). -->
+
+## Final model
+
+<!-- WRITE: The final model formula and why you chose it. -->
+
+```{r final-model}
+# Coefficient table for the final model
+get_regression_table(model_final, digits = 3) |>
+  kable(caption = "Final model: coefficients and 95% confidence intervals")
+
+# Overall fit: R-squared, adjusted R-squared, RMSE
+get_regression_summaries(model_final) |>
+  select(r_squared, adj_r_squared, rmse, nobs) |>
+  kable(digits = 3, caption = "Final model fit")
+```
+
+# Interpretation
+
+<!-- WRITE: Effects in everyday units (per 10 years of age, per 5 BMI points,
+     per 10 stress points, per extra hour of exercise per week).
+     Explain what adjusted R-squared and RMSE mean in plain words. -->
+
+# Diagnostics
+
+<!-- WRITE: VIF, Cook's distance, and what the residual plots show. -->
+
+```{r diagnostics}
+# Show the residual plots saved by Script 07
+include_graphics(here("outputs", "plots", "diag_resid_fitted.png"))
+include_graphics(here("outputs", "plots", "diag_resid_qq.png"))
+include_graphics(here("outputs", "plots", "diag_resid_predictors.png"))
+```
+
+<!-- WRITE: One sentence per plot: what you looked for and what you saw. -->
+
+# Limitations and conclusion
+
+<!-- WRITE: What the model cannot tell you (cause and effect, predicting one
+     patient, the large share of unexplained variation, the data looking
+     synthetic). Then a clear closing statement and a next step. -->

@@ -1,0 +1,8 @@
+variable,correlation,strength
+age,0.418,0.418
+bmi,0.268,0.268
+exercise_minutes_per_week,-0.209,0.209
+stress_score,0.167,0.167
+daily_steps,-0.128,0.128
+cholesterol_total,0.103,0.103
+sleep_hours,-0.013,0.013
